@@ -86,11 +86,14 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'db_find_pro',
+        'USER': 'postgres',  # o el usuario que configuraste
+        'PASSWORD': '96081520908',
+        'HOST': 'localhost',  # IMPORTANTE: localhost, no la IP del VPS
+        'PORT': '5433',       # El puerto del túnel
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
