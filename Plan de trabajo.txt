@@ -1,0 +1,82 @@
+El proyecto consiste en una página de gestion de servicios de todo tipo donde abra cuatro actores:
+
+  1)-*USUARIO* cliente que entra a la pagina a buscar un servicio para contratar ejemplo un plomero.
+
+    -Usuario puede o no registrarse en la pagina: 
+
+     Caso-1: usuario se registra con la siguiente informacion:
+ 
+     Caso-2: usuario no se registra:
+
+    -Usuario puede navegar por la seccion publica de la pagina ver las categorias, los servicios, perfiles de los profesionales que ofrecen los servicios, contratar servicio por la pagina
+     o privado con el profesional (solo usuarios registrados pueden hacer contrataciones por la pagina):
+
+       Caso-1: usuario quiere contratar servicio por la pagina (Selecciona contratar servicio a travez de la pagina) se abre un chat con el profesional donde el usuario podra comunicarse
+       con el profesional explicando su problematica, intercambiar informacion y agendar cita (todo esto se notifica al administrador ) si los actores no estan en sala se les notifica.
+
+           .Caso1.1: Si se agenda cita se genera numero de orden y se envia al usuario (Con ese numero de orden es que se puede generar el review)
+
+           .Caso1.2: No se agenda cita   
+
+       Caso-2: usuario contratar servicio por el privado a travez del contacto publico del profesional (para ver datos de contacto del profecional (ver datos de contacto) se requiere estar
+       registrado se puede crear link de contacto privado whatsapp)
+
+           .Caso-2.1: Si el usuario elige ver datos de contacto se notifica a las 24h al profesional eje:El usuario x agendo sita con usted 
+
+              Caso-2.1.1: Si el profesional marca si se genera un numero de orden instantaneo que se le notifica al usuario
+       
+              Caso-2.1.2: Si el profesional ignora la notificacion por 24h se considera que no se agendo cita 
+
+           .Caso-2.2: El usuario no ve datos de contacto del profesional 
+       
+       
+    -Usuario puede crear solo 1 review sobre la calidad del servicio prestado con el numero de orden (Si el servicio no fue prestado no puede escribir review ) y 1 review sobre la pagina
+     (si el usuario no esta registrado no puede poner review).
+
+    -Usuario podra filtrar 
+ 
+  2)-*PROFESIONAL* actor que va a ser contratado por el usuario
+
+   -Profesional puede estar registrado o no:
+
+     Caso-1: Profesional registrado puede ver su perfil eliminar o editar (Las modificaciones no seran vistas hasta que el admin lo apruebe)
+
+     Caso-2: Profesional no registrado quiere registrar su perfil (El perfil no es visible hasta que el administrador lo aprueba) 
+
+   -Puede entrara en su seccion correspondiente de la pagina para ver o modificar su perfil o crearse un perfil
+
+   -Puede responder review
+
+  3)-*ADMIN* que tendra parte de el control de la pagina encargado de las siguientes funciones: 
+
+    -validar inscripciones y modificaciones del perfil de los profesionales 
+    -Cancelar review indevidos
+    -Ver historial de chat entre usuario y profesional
+    -Recibe notificaciones de actividad en la pagina 
+
+  4)-*SUPER-ADMIN* tenga control absolutamente total lo mismo que admin +:
+    -CRUD usuarios, profesionales ,perfiles ,review etc.. 
+  
+-Implementar un chat para comunicar al cliente y el profecional y notificar por correo y sms a cada uno cuando tenga mensajes pendientes en el chat.
+
+-Que el proyecto cuente con  margen para escalar sin problemas a funcionalidades que se me vallan ocurriendo.
+
+-Los servicios deben estar divididos por categorias en cada categoria deven aparecer los diferentes perfiles de los profesionales cada perfil debe existir informacion como datos personales incluyendo contactos, un indicador de review para medir la calidad de ese profecional, trabajos realizados por ese profecional etc.. .  
+
+-El proyecto va a ser desplegado en un VPS donde va a estar todo centralizado (almacenamiento y DB) con nginx como  servidor web
+
+-Stack tecnologico:
+
+Capa	                       Tecnología	        Notas
+----                           ----------               -----
+Sistema Operativo	       Ubuntu 22.04 LTS	        Estable y con soporte largo
+Servidor Web	               Nginx 1.24+	        Proxy inverso + serve archivos
+Servidor WSGI	               Gunicorn	                Para requests HTTP
+Servidor ASGI	               Daphne	                Para WebSockets del chat
+Base de Datos	               PostgreSQL 15	        Local en el VPS
+Cache/Broker	               Redis 7+	                Local en el VPS
+Task Queue	               Celery 5.3+	        Procesamiento asíncrono
+SMS Gateway	               TextBee	                Self-hosted, API local
+Backups	                       pg_dump + rsync	        A segundo disco o S3 externo
+Monitorización	               Netdata + htop	        Ligero, monitoreo en tiempo real
+Firewall	               UFW + Fail2ban	        Seguridad básica
