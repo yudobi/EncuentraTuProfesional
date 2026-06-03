@@ -6,6 +6,7 @@ Comunes para TODOS los entornos - Basado en tu configuración actual
 from pathlib import Path
 from datetime import timedelta
 import os
+from decouple import config  # Para leer variables de entorno desde .env
 
 # ============================================================================
 # PATHS BASE
@@ -23,11 +24,20 @@ DJANGO_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',  # ← Necesario para django-allauth
 ]
 
 THIRD_PARTY_APPS = [
+    # Django REST Framework
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+     # Autenticación social
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',  # Proveedor específico de Google
+
     'corsheaders',
     'channels',          # Para WebSockets (chat)
     'guardian',          # Para permisos por objeto
@@ -48,6 +58,8 @@ LOCAL_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+SITE_ID = 1  # Necesario para django-allauth
+
 # ============================================================================
 # MIDDLEWARE
 # ============================================================================
@@ -58,6 +70,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # ← MUY IMPORTANTE
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -319,3 +332,30 @@ MIN_RATING = 1
 
 # WhatsApp - horas para confirmar cita
 WHATSAPP_PENDING_HOURS = 24
+
+############################################# Configuración de Google OAuth#############################
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'CLIENT_ID': config('GOOGLE_CLIENT_ID'),
+        'SECRET': config('GOOGLE_CLIENT_SECRET'),
+    }
+}
+
+# URL de redirección para Google
+GOOGLE_REDIRECT_URI = config('GOOGLE_REDIRECT_URI')
+FRONTEND_URL = config('FRONTEND_URL')
+
+# Configuración de django-allauth
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_LOGOUT_ON_GET = True
+##############################################################################################################
