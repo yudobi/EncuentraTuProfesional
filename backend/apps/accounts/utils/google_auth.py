@@ -5,11 +5,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from apps.accounts.models import User, ClientProfile
 
 class GoogleAuthService:
-    """Servicio para manejar autenticación con Google"""
+    #Servicio para manejar autenticación con Google
     
     @staticmethod
     def get_google_tokens(code):
-        """Intercambiar código por tokens de Google"""
+        #Intercambiar código por tokens de Google
         token_url = "https://oauth2.googleapis.com/token"
         data = {
             'code': code,
@@ -25,7 +25,7 @@ class GoogleAuthService:
     
     @staticmethod
     def get_google_user_info(access_token):
-        """Obtener información del usuario de Google"""
+        #Obtener información del usuario de Google
         user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
         headers = {'Authorization': f'Bearer {access_token}'}
         response = requests.get(user_info_url, headers=headers)
@@ -34,7 +34,7 @@ class GoogleAuthService:
     
     @staticmethod
     def create_or_update_user(google_user_data):
-        """Crear o actualizar usuario con datos de Google"""
+        #Crear o actualizar usuario con datos de Google
         email = google_user_data.get('email')
         google_id = google_user_data.get('id')
         
@@ -84,7 +84,7 @@ class GoogleAuthService:
     
     @staticmethod
     def generate_jwt_tokens(user):
-        """Generar tokens JWT para el usuario"""
+        #Generar tokens JWT para el usuario
         refresh = RefreshToken.for_user(user)
         
         # Añadir claims personalizados
@@ -99,7 +99,7 @@ class GoogleAuthService:
     
     @classmethod
     def authenticate_with_google(cls, code):
-        """Flujo completo de autenticación con Google"""
+        #Flujo completo de autenticación con Google
         try:
             # 1. Obtener tokens de Google
             tokens = cls.get_google_tokens(code)

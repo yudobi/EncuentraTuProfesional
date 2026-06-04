@@ -18,6 +18,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.conf import settings
 from django.contrib.auth import authenticate
+from django.shortcuts import redirect  # ← Agrega esta línea
 
 from .serializers import (
     UserRegistrationSerializer,
@@ -228,6 +229,49 @@ class GoogleAuthView(APIView):
     """
     
     permission_classes = [permissions.AllowAny]  # Cualquiera puede autenticarse con Google
+
+
+    def get(self, request):
+        """
+        Maneja el callback de Google (GET request con el código).
+        Este método es llamado cuando Google redirige al usuario.
+        """
+        # Obtener el código de la URL
+        code = request.GET.get('code')
+        
+        if not code:
+            # Si no hay código, redirigir a la URL de autorización de Google
+            client_id = settings.GOOGLE_CLIENT_ID
+            redirect_uri = settings.GOOGLE_REDIRECT_URI
+            auth_url = (
+                f"https://accounts.google.com/o/oauth2/v2/auth?"
+                f"client_id={client_id}&"
+                f"redirect_uri={redirect_uri}&"
+                f"response_type=code&"
+                f"scope=email%20profile&"
+                f"access_type=offline"
+            )
+            return redirect(auth_url)
+        
+        try:
+            # Autenticar con Google usando el código
+            result = GoogleAuthService.authenticate_with_google(code)
+            
+            # Redirigir al frontend con los tokens
+            frontend_url = settings.FRONTEND_URL
+            redirect_url = (
+                f"{frontend_url}/auth/callback?"
+                f"access={result['tokens']['access']}&"
+                f"refresh={result['tokens']['refresh']}"
+            )
+            
+            return redirect(redirect_url)
+            
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
     
     def post(self, request):
         """
@@ -549,3 +593,16 @@ class TokenVerifyView(APIView):
                 {'is_valid': False, 'error': 'Token inválido o expirado'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
+        
+
+
+
+
+
+
+
+
+
+def profile_redirect(request):
+    """Redirige de /accounts/profile/ a /api/v1/auth/me/"""
+    return redirect('/api/v1/auth/me/')

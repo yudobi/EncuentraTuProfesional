@@ -74,6 +74,12 @@ urlpatterns = [
     # Body: { "code": "código_recibido_de_google" }
     # Response: { "access", "refresh", "user", "is_new_user" }
     path('google/', GoogleAuthView.as_view(), name='google_auth'),
+
+    # Endpoint para el callback de Google (recibe el código vía GET)
+    # GET /api/v1/auth/google/callback/
+    # Query param: ?code=xxxxx
+    # Response: { "access", "refresh", "user", "is_new_user" }
+    path('google/callback/', GoogleAuthView.as_view(), name='google_callback'),
     
     # Endpoint de prueba para verificar configuración de Google OAuth
     # GET /api/v1/auth/google/test/
