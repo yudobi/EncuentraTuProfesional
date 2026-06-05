@@ -57,17 +57,22 @@ urlpatterns = [
     #   GET    /api/v1/auth/me/            - Perfil del usuario
     #   POST   /api/v1/auth/google/        - Google OAuth (intercambiar código)
     path('api/v1/auth/', include('apps.accounts.urls')),
-    
+
     # ==============================================
-    # 4. API VERSIÓN 1 - MÓDULOS FUTUROS (COMENTADOS)
+    # 4. API VERSIÓN 1 - CATÁLOGO PÚBLICO (Fase 1)
     # ==============================================
-    # Aquí irán otros módulos de tu aplicación cuando los desarrolles
-    
-    # path('api/v1/services/', include('apps.services.urls')),     # Gestión de servicios
-    # path('api/v1/categories/', include('apps.categories.urls')), # Categorías
+    path('api/v1/categories/', include('apps.categories.urls')),       # Categorías
+    path('api/v1/professionals/', include('apps.professionals.urls')),  # Profesionales
+    path('api/v1/orders/', include('apps.orders.urls')),                # Órdenes (Fase 2)
+    path('api/v1/reviews/', include('apps.reviews.urls')),              # Reseñas (Fase 3)
+    path('api/v1/admin/', include('apps.administration.urls')),         # Admin/moderación (Fase 4)
+    path('api/v1/notifications/', include('apps.notifications.urls')),  # Notificaciones (Fase 2)
+
+    # ==============================================
+    # 5. API VERSIÓN 1 - MÓDULOS FUTUROS (COMENTADOS)
+    # ==============================================
     # path('api/v1/reviews/', include('apps.reviews.urls')),       # Reseñas
-    # path('api/v1/professionals/', include('apps.professionals.urls')), # Profesionales
-    # path('api/v1/chats/', include('apps.chats.urls')),           # Sistema de chat
+    # path('api/v1/chats/', include('apps.chat.urls')),            # Sistema de chat
     
     # ==============================================
     # 5. OTRAS VERSIONES DE API (Futuro)
