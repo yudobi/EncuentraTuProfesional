@@ -14,6 +14,10 @@ class User(AbstractUser):
         ADMIN = 'admin', 'Administrador'
         SUPER_ADMIN = 'super_admin', 'Super Administrador'
     
+    class AuthProvider(models.TextChoices):
+        EMAIL = 'email', 'Email'
+        GOOGLE = 'google', 'Google'
+
     # Campos específicos para todos los usuarios
     google_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
     auth_provider = models.CharField(
@@ -23,10 +27,18 @@ class User(AbstractUser):
     )
     
     email = models.EmailField(unique=True)
-    phone_number = models.CharField(max_length=15, unique=True)
+    phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.CLIENT)
     is_verified = models.BooleanField(default=False)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+
+    # Autenticación social (Google OAuth)
+    google_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    auth_provider = models.CharField(
+        max_length=20,
+        choices=AuthProvider.choices,
+        default=AuthProvider.EMAIL,
+    )
     
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
@@ -86,7 +98,7 @@ class User(AbstractUser):
 class ClientProfile(models.Model):
     """Información específica del cliente"""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='client_profile')
-    favorite_categories = models.ManyToManyField('Category', blank=True)
+    favorite_categories = models.ManyToManyField('categories.Category', blank=True)
     saved_professionals = models.ManyToManyField('ProfessionalProfile', blank=True)
     address = models.TextField(blank=True)
     birth_date = models.DateField(null=True, blank=True)
@@ -102,7 +114,7 @@ class ProfessionalProfile(models.Model):
     # Datos profesionales
     business_name = models.CharField(max_length=200)
     description = models.TextField()
-    categories = models.ManyToManyField('Category', related_name='professionals')
+    categories = models.ManyToManyField('categories.Category', related_name='professionals')
     
     # Contacto público
     contact_phone = models.CharField(max_length=15)
@@ -123,11 +135,25 @@ class ProfessionalProfile(models.Model):
     )
     approval_notes = models.TextField(blank=True)
     
+    # Presentación pública (catálogo)
+    headline = models.CharField(max_length=200, blank=True, help_text='Título corto: "Plomero certificado · 12 años".')
+    location = models.CharField(max_length=200, blank=True, help_text='Ciudad / zona: "Madrid, Centro".')
+    handle = models.CharField(max_length=80, blank=True, help_text='Alias público: "@marcos.rivera".')
+    years_experience = models.PositiveIntegerField(null=True, blank=True)
+    price_from = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True, help_text='Precio por hora "desde".')
+    response_time_min = models.PositiveIntegerField(null=True, blank=True, help_text='Tiempo medio de respuesta en minutos.')
+    is_top_pro = models.BooleanField(default=False)
+
+    # Listas (casan con string[] del frontend)
+    skills = models.JSONField(default=list, blank=True)
+    schedule = models.JSONField(default=list, blank=True)
+    gallery = models.JSONField(default=list, blank=True)
+
     # Métricas
     rating_avg = models.DecimalField(max_digits=3, decimal_places=2, default=0)
     total_reviews = models.PositiveIntegerField(default=0)
     total_services_completed = models.PositiveIntegerField(default=0)
-    
+
     # Portfolio
     cover_image = models.ImageField(upload_to='professionals/covers/', null=True, blank=True)
     

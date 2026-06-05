@@ -1,11 +1,18 @@
 import { useState, type ReactNode } from "react";
 import { useNavigate, useParams } from "react-router";
 import { ArrowRight, Check } from "lucide-react";
+import { toast } from "sonner";
 import { Eyebrow } from "@/components/atoms/Eyebrow";
 import { Stars } from "@/components/atoms/Stars";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useOrder } from "@/hooks/useOrders";
+import {
+  useCreateReview,
+  useCreatePlatformReview,
+} from "@/hooks/useReviews";
+import { extractApiError } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
 type Step = "service" | "platform";
@@ -13,13 +20,40 @@ type Step = "service" | "platform";
 export default function Review() {
   const navigate = useNavigate();
   const { orderId } = useParams();
-  const [orderCode, setOrderCode] = useState(orderId || "LS-2A98F1");
-  const [verified, setVerified] = useState(true);
+  const [orderCode, setOrderCode] = useState(orderId || "");
+  const [activeCode, setActiveCode] = useState(orderId || "");
   const [serviceRating, setServiceRating] = useState(0);
   const [platformRating, setPlatformRating] = useState(0);
   const [step, setStep] = useState<Step>("service");
   const [text, setText] = useState("");
+  const [platformText, setPlatformText] = useState("");
   const [done, setDone] = useState(false);
+
+  const { data: order, isFetching, isError } = useOrder(activeCode || undefined);
+  const verified = !!order;
+
+  const createReview = useCreateReview();
+  const createPlatform = useCreatePlatformReview();
+  const proName = order?.professional.name ?? "el profesional";
+
+  const publish = async (includePlatform: boolean) => {
+    try {
+      await createReview.mutateAsync({
+        order_number: activeCode,
+        rating: serviceRating,
+        text,
+      });
+      if (includePlatform && platformRating > 0) {
+        await createPlatform.mutateAsync({
+          rating: platformRating,
+          text: platformText,
+        });
+      }
+      setDone(true);
+    } catch (err) {
+      toast.error(extractApiError(err));
+    }
+  };
 
   if (done) {
     return (
@@ -66,13 +100,14 @@ export default function Review() {
                 value={orderCode}
                 onChange={(e) => setOrderCode(e.target.value)}
                 className="font-mono"
+                placeholder="LS-XXXXXX"
               />
-              <Button variant="ghost" onClick={() => setVerified(true)}>
+              <Button variant="ghost" onClick={() => setActiveCode(orderCode.trim())}>
                 Verificar
               </Button>
             </div>
           </Field>
-          {verified && (
+          {verified && order && (
             <div
               className="flex items-center gap-2 mt-3 p-3 rounded text-[13px]"
               style={{
@@ -81,8 +116,18 @@ export default function Review() {
               }}
             >
               <Check className="h-4 w-4" /> Orden verificada · Servicio:{" "}
-              <b>Diagnóstico de fuga</b> con <b>Marcos Rivera</b> · Hoy 17:30
+              <b>{order.service_title}</b> con <b>{order.professional.name}</b>
+              {order.is_reviewable ? "" : " · (aún no completada)"}
             </div>
+          )}
+          {isError && activeCode && (
+            <div className="mt-3 p-3 rounded text-[13px] bg-[var(--color-paper-2)] text-mute">
+              No pudimos verificar la orden <b>{activeCode}</b>. Revisa el número e inicia
+              sesión con la cuenta que la contrató.
+            </div>
+          )}
+          {isFetching && (
+            <div className="mt-3 text-mute text-xs mono">Verificando…</div>
           )}
           <div className="text-mute text-xs mt-2.5">
             Solo puedes reseñar servicios completados con orden válida. Una reseña por
@@ -94,7 +139,9 @@ export default function Review() {
           <div className="ls-card p-6 md:p-7">
             <Eyebrow>1 / 2 — Sobre el servicio</Eyebrow>
             <div className="mt-4">
-              <div className="text-base font-semibold mb-2">¿Qué tal estuvo Marcos?</div>
+              <div className="text-base font-semibold mb-2">
+                ¿Qué tal estuvo {proName}?
+              </div>
               <BigStars value={serviceRating} onChange={setServiceRating} />
             </div>
 
@@ -139,7 +186,7 @@ export default function Review() {
             </div>
 
             <div className="flex items-center justify-between mt-7 flex-wrap gap-3">
-              <Button variant="link" className="text-xs">
+              <Button variant="link" className="text-xs" onClick={() => navigate("/")}>
                 Cancelar
               </Button>
               <Button
@@ -170,7 +217,12 @@ export default function Review() {
 
             <div className="mt-6">
               <Field label="Comentario sobre la plataforma">
-                <Textarea rows={4} placeholder="¿Qué mejorarías? ¿Qué te gustó?" />
+                <Textarea
+                  value={platformText}
+                  onChange={(e) => setPlatformText(e.target.value)}
+                  rows={4}
+                  placeholder="¿Qué mejorarías? ¿Qué te gustó?"
+                />
               </Field>
             </div>
 
@@ -179,10 +231,19 @@ export default function Review() {
                 ← Volver
               </Button>
               <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => setDone(true)}>
+                <Button
+                  variant="ghost"
+                  disabled={createReview.isPending}
+                  onClick={() => publish(false)}
+                >
                   Saltar y publicar
                 </Button>
-                <Button variant="signal" onClick={() => setDone(true)} className="hover-signal">
+                <Button
+                  variant="signal"
+                  disabled={createReview.isPending || createPlatform.isPending}
+                  onClick={() => publish(true)}
+                  className="hover-signal"
+                >
                   Publicar reseña
                 </Button>
               </div>

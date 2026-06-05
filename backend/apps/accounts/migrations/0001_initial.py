@@ -4,6 +4,7 @@ import django.contrib.auth.models
 import django.contrib.auth.validators
 import django.db.models.deletion
 import django.utils.timezone
+from django.conf import settings
 from django.db import migrations, models
 
 
@@ -13,6 +14,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('auth', '0012_alter_user_first_name_max_length'),
+        ('categories', '0001_initial'),
     ]
 
     operations = [

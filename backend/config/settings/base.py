@@ -47,12 +47,13 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     'apps.accounts',           # Usuarios
-    #'apps.professionals',      # Perfiles profesionales
-    #'apps.orders',             # Órdenes de servicio
-    #'apps.reviews',            # Sistema de reviews
+    'apps.categories',         # Categorías de servicios
+    'apps.professionals',      # Perfiles profesionales
+    'apps.orders',             # Órdenes de servicio
+    'apps.reviews',            # Sistema de reviews
+    'apps.administration',     # Panel admin / moderación
+    'apps.notifications',      # Notificaciones email/SMS
     #'apps.chat',               # Chat y mensajería
-    #'apps.notifications',      # Notificaciones email/SMS
-    #'apps.categories',         # Categorías de servicios
     #'apps.favorites',          # Favoritos de clientes
     #'apps.analytics',          # Estadísticas
 ]
@@ -134,7 +135,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Custom user model
-#AUTH_USER_MODEL = 'accounts.User'  # Crearemos este modelo
+AUTH_USER_MODEL = 'accounts.User'
 
 # Django Guardian (permisos por objeto)
 AUTHENTICATION_BACKENDS = (
@@ -338,6 +339,15 @@ MIN_RATING = 1
 WHATSAPP_PENDING_HOURS = 24
 
 ############################################# Configuración de Google OAuth#############################
+# Credenciales de Google OAuth (con default vacío para no romper el arranque
+# cuando aún no se han configurado en el .env).
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
+GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
+
+# Alias usados por apps/accounts/utils/google_auth.py y views.py
+SOCIAL_AUTH_GOOGLE_CLIENT_ID = GOOGLE_CLIENT_ID
+SOCIAL_AUTH_GOOGLE_CLIENT_SECRET = GOOGLE_CLIENT_SECRET
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': [
@@ -347,19 +357,18 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {
             'access_type': 'online',
         },
-        'CLIENT_ID': config('GOOGLE_CLIENT_ID'),
-        'SECRET': config('GOOGLE_CLIENT_SECRET'),
+        'CLIENT_ID': GOOGLE_CLIENT_ID,
+        'SECRET': GOOGLE_CLIENT_SECRET,
     }
 }
 
 # URL de redirección para Google
-GOOGLE_REDIRECT_URI = config('GOOGLE_REDIRECT_URI')
-FRONTEND_URL = config('FRONTEND_URL')
+GOOGLE_REDIRECT_URI = config('GOOGLE_REDIRECT_URI', default='http://localhost:8000/api/v1/auth/google/callback/')
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
 
 # Configuración de django-allauth
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
 ACCOUNT_LOGOUT_ON_GET = True
 ##############################################################################################################

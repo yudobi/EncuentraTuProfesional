@@ -1,14 +1,20 @@
-import { useState, type ReactNode } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { ArrowRight, Shield } from "lucide-react";
+import { toast } from "sonner";
 import { Eyebrow } from "@/components/atoms/Eyebrow";
 import { LSLogo } from "@/components/brand/LSLogo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CATEGORIES } from "@/data/mocks";
 import { cn } from "@/lib/utils";
+import { extractApiError, useLogin, useRegister } from "@/hooks/useAuth";
 
 type Mode = "user_login" | "user_signup" | "pro_login" | "pro_signup";
+
+const usernameFromEmail = (email: string) =>
+  email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "").slice(0, 30) ||
+  `user${Date.now().toString(36)}`;
 
 export default function Auth() {
   const [searchParams] = useSearchParams();
@@ -16,8 +22,42 @@ export default function Auth() {
   const [mode, setMode] = useState<Mode>(initial);
   const navigate = useNavigate();
 
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const login = useLogin();
+  const register = useRegister();
+
   const isPro = mode.startsWith("pro");
   const isSignup = mode.endsWith("signup");
+  const isSubmitting = login.isPending || register.isPending;
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      if (isSignup) {
+        await register.mutateAsync({
+          email,
+          username: usernameFromEmail(email),
+          password,
+          password2: password,
+          phone_number: phone || `+0${Date.now().toString().slice(-10)}`,
+          first_name: firstName || undefined,
+          last_name: lastName || undefined,
+        });
+        toast.success("Cuenta creada. ¡Bienvenido!");
+      } else {
+        await login.mutateAsync({ email, password });
+        toast.success("Sesión iniciada.");
+      }
+      navigate(isPro && isSignup ? "/panel" : "/");
+    } catch (error) {
+      toast.error(extractApiError(error));
+    }
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-64px)] bg-paper">
@@ -63,28 +103,44 @@ export default function Auth() {
               : "Accede a tus chats, órdenes y reseñas."}
           </p>
 
-          <form
-            className="flex flex-col gap-3.5 mt-7"
-            onSubmit={(e) => {
-              e.preventDefault();
-              navigate(isPro && isSignup ? "/panel" : "/");
-            }}
-          >
+          <form className="flex flex-col gap-3.5 mt-7" onSubmit={handleSubmit}>
             {isSignup && (
               <div className="grid grid-cols-2 gap-2.5">
                 <Field label="Nombre">
-                  <Input placeholder="María" />
+                  <Input
+                    placeholder="María"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
                 </Field>
                 <Field label="Apellido">
-                  <Input placeholder="López" />
+                  <Input
+                    placeholder="López"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
                 </Field>
               </div>
             )}
             <Field label="Email">
-              <Input type="email" placeholder="hola@email.com" />
+              <Input
+                type="email"
+                placeholder="hola@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
             </Field>
             <Field label="Contraseña">
-              <Input type="password" placeholder="••••••••" />
+              <Input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete={isSignup ? "new-password" : "current-password"}
+              />
             </Field>
 
             {isSignup && isPro && (
@@ -116,16 +172,22 @@ export default function Auth() {
 
             {isSignup && !isPro && (
               <Field label="Teléfono (opcional)">
-                <Input placeholder="+34 ..." />
+                <Input
+                  placeholder="+34 ..."
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  autoComplete="tel"
+                />
               </Field>
             )}
 
             <Button
               type="submit"
               variant="signal"
+              disabled={isSubmitting}
               className="w-full justify-center h-11 mt-2 hover-signal"
             >
-              {isSignup ? "Crear cuenta" : "Entrar"}
+              {isSubmitting ? "Procesando…" : isSignup ? "Crear cuenta" : "Entrar"}
               <ArrowRight className="h-3.5 w-3.5" />
             </Button>
 

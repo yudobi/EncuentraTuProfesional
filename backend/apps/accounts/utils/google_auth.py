@@ -73,7 +73,7 @@ class GoogleAuthService:
                 is_verified=True,
                 auth_provider='google',
                 role=User.Role.CLIENT,  # Rol por defecto
-                phone_number='',  # Se pedirá después si es necesario
+                phone_number=None,  # Se pedirá después si es necesario
             )
             
             # Crear perfil de cliente

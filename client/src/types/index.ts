@@ -78,3 +78,29 @@ export type Actor =
   | "pro"
   | "admin"
   | "super_admin";
+
+export type OrderStatus = "scheduled" | "completed" | "cancelled" | "no_show";
+
+export interface OrderProfessional {
+  id: string;
+  name: string;
+  title: string;
+  contact: { whatsapp: boolean; phone: boolean };
+}
+
+export interface Order {
+  order_number: string;
+  client_name: string;
+  professional: OrderProfessional;
+  category: string | null;
+  service_title: string;
+  description: string;
+  scheduled_for: string | null;
+  location: string;
+  agreed_price: string | null;
+  status: OrderStatus;
+  source: "chat" | "direct";
+  is_reviewable: boolean;
+  created_at: string;
+  completed_at: string | null;
+}
