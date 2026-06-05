@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import timedelta
 import os
 from decouple import config  # Para leer variables de entorno desde .env
+from django.conf import settings
 
 # ============================================================================
 # PATHS BASE
@@ -197,6 +198,9 @@ REST_FRAMEWORK = {
 # ============================================================================
 # JWT CONFIGURATION (basado en tu configuración)
 # ============================================================================
+
+SECRET_KEY = config('SECRET_KEY')
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -205,7 +209,7 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': True,  # Añadido para registrar último login
     
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': None,  # Se toma del SECRET_KEY
+    'SIGNING_KEY': SECRET_KEY,  # Se toma del SECRET_KEY
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,

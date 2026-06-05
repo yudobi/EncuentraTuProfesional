@@ -16,6 +16,8 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from apps.accounts.views import profile_redirect
+
 # ==============================================
 # IMPORTS DE TERCEROS (si los necesitas)
 # ==============================================
@@ -79,6 +81,8 @@ urlpatterns = [
     # ==============================================
     # Cuando necesites hacer cambios breaking, creas /api/v2/
     # path('api/v2/', include('apps.api_v2.urls')),
+
+    path('accounts/profile/', profile_redirect, name='profile_redirect'),
 ]
 
 # ==============================================

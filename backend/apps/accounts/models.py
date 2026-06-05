@@ -19,6 +19,13 @@ class User(AbstractUser):
         GOOGLE = 'google', 'Google'
 
     # Campos específicos para todos los usuarios
+    google_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    auth_provider = models.CharField(
+        max_length=50, 
+        choices=[('email', 'Email'), ('google', 'Google'), ('facebook', 'Facebook')],
+        default='email'
+    )
+    
     email = models.EmailField(unique=True)
     phone_number = models.CharField(max_length=15, unique=True, null=True, blank=True)
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.CLIENT)
@@ -40,6 +47,22 @@ class User(AbstractUser):
     # Preferencias
     receive_email_notifications = models.BooleanField(default=True)
     receive_sms_notifications = models.BooleanField(default=True)
+
+
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='accounts_user_set',  # Cambia esto
+        blank=True,
+        help_text='The groups this user belongs to.',
+        verbose_name='groups',
+        )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='accounts_user_set',  # Cambia esto
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions',
+    )
     
     USERNAME_FIELD = 'email'  # Usar email como identificador principal
     REQUIRED_FIELDS = ['username', 'phone_number']  # Campos requeridos al crear superuser
@@ -142,3 +165,21 @@ class ProfessionalProfile(models.Model):
     
     def __str__(self):
         return f"{self.business_name} ({self.user.email})"
+    
+
+
+class Category(models.Model):
+    """Categorías de servicios"""
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=50, blank=True)  # Para íconos CSS/fa
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'categories'
+        verbose_name_plural = "Categories"
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name    
