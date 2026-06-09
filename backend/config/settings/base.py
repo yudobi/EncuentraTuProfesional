@@ -6,6 +6,8 @@ Comunes para TODOS los entornos - Basado en tu configuración actual
 from pathlib import Path
 from datetime import timedelta
 import os
+from decouple import config  # Para leer variables de entorno desde .env
+from django.conf import settings
 
 
 # ============================================================================
@@ -25,13 +27,29 @@ DJANGO_APPS = [
     'django.contrib.messages',   
     'daphne',        # Para tareas asíncronas con Celery
     'django.contrib.staticfiles',
+<<<<<<< HEAD
     'django_extensions'
 ]
 
 THIRD_PARTY_APPS = [
 
     'rest_framework',       
+=======
+    'django.contrib.sites',  # ← Necesario para django-allauth
+]
+
+THIRD_PARTY_APPS = [
+    # Django REST Framework
+    'rest_framework',
+>>>>>>> 04f20388af02aa1c4a054968af7afdf1e58e6076
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+     # Autenticación social
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',  # Proveedor específico de Google
+
     'corsheaders',
     'channels',          # Para WebSockets (chat)
     'guardian',          # Para permisos por objeto
@@ -40,17 +58,29 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     'apps.accounts',           # Usuarios
+<<<<<<< HEAD
     #'apps.professionals',      # Perfiles profesionales
     #'apps.orders',             # Órdenes de servicio
     #'apps.reviews',            # Sistema de reviews
     'apps.chat',               # Chat y mensajería
     #'apps.notifications',      # Notificaciones email/SMS
     #'apps.categories',         # Categorías de servicios
+=======
+    'apps.categories',         # Categorías de servicios
+    'apps.professionals',      # Perfiles profesionales
+    'apps.orders',             # Órdenes de servicio
+    'apps.reviews',            # Sistema de reviews
+    'apps.administration',     # Panel admin / moderación
+    'apps.notifications',      # Notificaciones email/SMS
+    #'apps.chat',               # Chat y mensajería
+>>>>>>> 04f20388af02aa1c4a054968af7afdf1e58e6076
     #'apps.favorites',          # Favoritos de clientes
     #'apps.analytics',          # Estadísticas
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+SITE_ID = 1  # Necesario para django-allauth
 
 # ============================================================================
 # MIDDLEWARE
@@ -62,6 +92,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',  # ← MUY IMPORTANTE
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -125,7 +156,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Custom user model
-#AUTH_USER_MODEL = 'accounts.User'  # Crearemos este modelo
+AUTH_USER_MODEL = 'accounts.User'
 
 # Django Guardian (permisos por objeto)
 AUTHENTICATION_BACKENDS = (
@@ -188,6 +219,9 @@ REST_FRAMEWORK = {
 # ============================================================================
 # JWT CONFIGURATION (basado en tu configuración)
 # ============================================================================
+
+SECRET_KEY = config('SECRET_KEY')
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
@@ -196,7 +230,7 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': True,  # Añadido para registrar último login
     
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': None,  # Se toma del SECRET_KEY
+    'SIGNING_KEY': SECRET_KEY,  # Se toma del SECRET_KEY
     'VERIFYING_KEY': None,
     'AUDIENCE': None,
     'ISSUER': None,
@@ -324,3 +358,38 @@ MIN_RATING = 1
 
 # WhatsApp - horas para confirmar cita
 WHATSAPP_PENDING_HOURS = 24
+
+############################################# Configuración de Google OAuth#############################
+# Credenciales de Google OAuth (con default vacío para no romper el arranque
+# cuando aún no se han configurado en el .env).
+GOOGLE_CLIENT_ID = config('GOOGLE_CLIENT_ID', default='')
+GOOGLE_CLIENT_SECRET = config('GOOGLE_CLIENT_SECRET', default='')
+
+# Alias usados por apps/accounts/utils/google_auth.py y views.py
+SOCIAL_AUTH_GOOGLE_CLIENT_ID = GOOGLE_CLIENT_ID
+SOCIAL_AUTH_GOOGLE_CLIENT_SECRET = GOOGLE_CLIENT_SECRET
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'CLIENT_ID': GOOGLE_CLIENT_ID,
+        'SECRET': GOOGLE_CLIENT_SECRET,
+    }
+}
+
+# URL de redirección para Google
+GOOGLE_REDIRECT_URI = config('GOOGLE_REDIRECT_URI', default='http://localhost:8000/api/v1/auth/google/callback/')
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:3000')
+
+# Configuración de django-allauth
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+ACCOUNT_EMAIL_VERIFICATION = 'optional'
+ACCOUNT_LOGOUT_ON_GET = True
+##############################################################################################################

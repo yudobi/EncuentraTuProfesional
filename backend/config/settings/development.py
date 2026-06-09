@@ -21,7 +21,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 DEBUG = True # Cambia a False para probar el entorno de producción localmente
 
 # Mantén tus ALLOWED_HOSTS actuales o amplíalos
-ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')  # Ejemplo: localhost,
+ALLOWED_HOSTS = env('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')  # Ejemplo: localhost,
 
 # ============================================================================
 # SECRET KEY (Mantén tu clave actual)
@@ -64,6 +64,9 @@ CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
 # ============================================================================
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
+ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
+
 # ============================================================================
 # CACHE (Dummy para desarrollo)
 # ============================================================================
@@ -72,6 +75,40 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
 }
+
+# ============================================================================
+# GOOGLE OAUTH CONFIGURATION
+# ============================================================================
+# Google OAuth - Usando tus variables del .env
+GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID', default='')
+GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET', default='')
+GOOGLE_REDIRECT_URI = env('GOOGLE_REDIRECT_URI', default='http://localhost:8000/api/auth/google/callback/')
+FRONTEND_URL = env('FRONTEND_URL', default='http://localhost:3000')
+
+# Compatibilidad con SOCIAL_AUTH (para librerías que lo requieran)
+SOCIAL_AUTH_GOOGLE_CLIENT_ID = GOOGLE_CLIENT_ID
+SOCIAL_AUTH_GOOGLE_CLIENT_SECRET = GOOGLE_CLIENT_SECRET
+
+# Configuración para django-allauth (si lo estás usando)
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': GOOGLE_CLIENT_ID,
+            'secret': GOOGLE_CLIENT_SECRET,
+            'key': ''
+        },
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'VERIFIED_EMAIL': True,  # Google ya verifica emails
+    }
+}
+
+
 
 # ============================================================================
 # CHANNELS (InMemory para desarrollo - no necesita Redis)

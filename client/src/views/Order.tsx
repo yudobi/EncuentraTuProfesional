@@ -3,13 +3,63 @@ import { Check } from "lucide-react";
 import { Eyebrow } from "@/components/atoms/Eyebrow";
 import { Pill } from "@/components/atoms/Pill";
 import { Button } from "@/components/ui/button";
-import { PROFESSIONALS } from "@/data/mocks";
+import { useOrder } from "@/hooks/useOrders";
+
+const STATUS_LABEL: Record<string, string> = {
+  scheduled: "Cita confirmada",
+  completed: "Servicio completado",
+  cancelled: "Orden cancelada",
+  no_show: "No asistió",
+};
+
+function formatSchedule(iso: string | null): { value: string; sub?: string } {
+  if (!iso) return { value: "Por coordinar" };
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return { value: "Por coordinar" };
+  const value = d.toLocaleString("es-ES", {
+    weekday: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const sub = d.toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  return { value: value.charAt(0).toUpperCase() + value.slice(1), sub };
+}
 
 export default function Order() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const orderId = id || "LS-2A98F1";
-  const pro = PROFESSIONALS[0];
+  const { data: order, isLoading, isError } = useOrder(id);
+
+  if (!id || isError) {
+    return (
+      <div className="fade-up flex items-center justify-center min-h-[calc(100vh-110px)] py-10 px-5">
+        <div className="ls-card max-w-[480px] w-full flex flex-col items-center gap-3 py-16 text-center">
+          <div className="h-display text-[28px]">Orden no encontrada</div>
+          <div className="text-mute">
+            No pudimos encontrar la orden{id ? ` #${id}` : ""}. Verifica el número o
+            inicia sesión.
+          </div>
+          <Button variant="primary" className="mt-2" onClick={() => navigate("/")}>
+            Volver al inicio
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading || !order) {
+    return (
+      <div className="fade-up flex items-center justify-center min-h-[calc(100vh-110px)] py-10 px-5">
+        <div className="text-mute mono text-sm">Cargando orden…</div>
+      </div>
+    );
+  }
+
+  const schedule = formatSchedule(order.scheduled_for);
 
   return (
     <div className="fade-up flex items-center justify-center min-h-[calc(100vh-110px)] py-10 px-5 md:px-10">
@@ -18,7 +68,7 @@ export default function Order() {
           <div className="w-20 h-20 rounded-full bg-[var(--color-signal)] border-2 border-[var(--color-ink)] flex items-center justify-center">
             <Check className="h-9 w-9" />
           </div>
-          <Eyebrow>Cita confirmada</Eyebrow>
+          <Eyebrow>{STATUS_LABEL[order.status] ?? "Tu orden"}</Eyebrow>
           <h1 className="h-display text-[36px] md:text-[56px]">
             Tu orden <i>está en marcha</i>.
           </h1>
@@ -35,7 +85,7 @@ export default function Order() {
                   NÚMERO DE ORDEN
                 </div>
                 <div className="h-display text-[36px] md:text-[42px] mt-1 text-[var(--color-signal)]">
-                  {orderId}
+                  {order.order_number}
                 </div>
               </div>
               <Pill signal>guardar</Pill>
@@ -48,18 +98,30 @@ export default function Order() {
 
           <div className="p-6 md:p-7">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <Detail label="Profesional" value={pro.name} sub={pro.title} />
+              <Detail
+                label="Profesional"
+                value={order.professional.name}
+                sub={order.professional.title}
+              />
               <Detail
                 label="Servicio"
-                value="Diagnóstico de fuga"
-                sub="Plomería · 1h estimada"
+                value={order.service_title}
+                sub={order.category ?? undefined}
               />
-              <Detail label="Fecha" value="Hoy · 17:30" sub="3 nov. 2026" />
-              <Detail label="Lugar" value="Calle Goya 34, 4º B" sub="Madrid · Centro" />
-              <Detail label="Precio acordado" value="€35" sub="Pago tras servicio" />
+              <Detail label="Fecha" value={schedule.value} sub={schedule.sub} />
+              <Detail label="Lugar" value={order.location || "Por coordinar"} />
+              <Detail
+                label="Precio acordado"
+                value={order.agreed_price ? `€${order.agreed_price}` : "Por acordar"}
+                sub="Pago tras servicio"
+              />
               <Detail
                 label="Contacto"
-                value={pro.contact.whatsapp ? "WhatsApp habilitado" : "Solo chat plataforma"}
+                value={
+                  order.professional.contact.whatsapp
+                    ? "WhatsApp habilitado"
+                    : "Solo chat plataforma"
+                }
               />
             </div>
           </div>
@@ -69,7 +131,11 @@ export default function Order() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
               <NextStep n="01" t="Recordatorio" d="Te avisamos 1h antes de la cita" />
               <NextStep n="02" t="Servicio" d="El pro completará el trabajo en sitio" />
-              <NextStep n="03" t="Reseña" d={`Recibirás un email con el código #${orderId}`} />
+              <NextStep
+                n="03"
+                t="Reseña"
+                d={`Podrás reseñar con el código #${order.order_number}`}
+              />
             </div>
           </div>
         </div>
@@ -78,10 +144,21 @@ export default function Order() {
           <Button variant="primary" onClick={() => navigate("/")}>
             Volver al inicio
           </Button>
-          <Button variant="ghost" onClick={() => navigate(`/chat/${pro.id}`)}>
+          {order.is_reviewable && (
+            <Button
+              variant="signal"
+              className="hover-signal"
+              onClick={() => navigate(`/review/${order.order_number}`)}
+            >
+              Dejar reseña
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            onClick={() => navigate(`/chat/${order.professional.id}`)}
+          >
             Volver al chat
           </Button>
-          <Button variant="ghost">Descargar PDF</Button>
         </div>
       </div>
     </div>

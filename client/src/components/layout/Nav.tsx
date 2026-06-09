@@ -13,6 +13,7 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { useUnreadCount, useMarkAllRead } from "@/hooks/useNotifications";
 
 interface NavProps {
   variant?: "full" | "minimal";
@@ -22,6 +23,8 @@ interface NavProps {
 export function Nav({ variant = "full", isLogged = false }: NavProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { data: unread = 0 } = useUnreadCount(isLogged);
+  const markAllRead = useMarkAllRead();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -104,8 +107,21 @@ export function Nav({ variant = "full", isLogged = false }: NavProps) {
           <div className="flex items-center gap-2 ml-auto">
             {isLogged && (
               <>
-                <Button variant="icon" size="icon-sm" className="hidden sm:flex">
+                <Button
+                  variant="icon"
+                  size="icon-sm"
+                  className="hidden sm:flex relative"
+                  onClick={() => {
+                    navigate("/admin?tab=notificaciones");
+                    if (unread > 0) markAllRead.mutate();
+                  }}
+                >
                   <Bell className="h-4 w-4" />
+                  {unread > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-[var(--color-signal-deep)] text-[var(--color-paper)] text-[10px] mono font-semibold flex items-center justify-center">
+                      {unread > 9 ? "9+" : unread}
+                    </span>
+                  )}
                 </Button>
                 <Button
                   variant="icon"

@@ -16,7 +16,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 # ============================================================================
 # DEBUG (Siempre False en producción)
 # ============================================================================
-DEBUG = False
+DEBUG = True
 
 # Configurar ALLOWED_HOSTS desde variable de entorno
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['api.servicehub.com'])
