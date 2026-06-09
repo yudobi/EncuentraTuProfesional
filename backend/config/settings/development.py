@@ -7,6 +7,7 @@ from .base import *
 import os
 import environ
 
+
 # ============================================================================
 # ENVIRONMENT VARIABLES (Usando django-environ)
 # ============================================================================
@@ -17,7 +18,7 @@ environ.Env.read_env(BASE_DIR / '.env')
 # ============================================================================
 # DEBUG
 # ============================================================================
-DEBUG = True
+DEBUG = True # Cambia a False para probar el entorno de producción localmente
 
 # Mantén tus ALLOWED_HOSTS actuales o amplíalos
 ALLOWED_HOSTS = env('ALLOWED_HOSTS').split(',')  # Ejemplo: localhost,
