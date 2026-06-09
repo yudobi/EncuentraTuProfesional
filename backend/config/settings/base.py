@@ -7,6 +7,7 @@ from pathlib import Path
 from datetime import timedelta
 import os
 
+
 # ============================================================================
 # PATHS BASE
 # ============================================================================
@@ -21,12 +22,15 @@ DJANGO_APPS = [
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.messages',
+    'django.contrib.messages',   
+    'daphne',        # Para tareas asíncronas con Celery
     'django.contrib.staticfiles',
+    'django_extensions'
 ]
 
 THIRD_PARTY_APPS = [
-    'rest_framework',
+
+    'rest_framework',       
     'rest_framework_simplejwt',
     'corsheaders',
     'channels',          # Para WebSockets (chat)
@@ -39,7 +43,7 @@ LOCAL_APPS = [
     #'apps.professionals',      # Perfiles profesionales
     #'apps.orders',             # Órdenes de servicio
     #'apps.reviews',            # Sistema de reviews
-    #'apps.chat',               # Chat y mensajería
+    'apps.chat',               # Chat y mensajería
     #'apps.notifications',      # Notificaciones email/SMS
     #'apps.categories',         # Categorías de servicios
     #'apps.favorites',          # Favoritos de clientes
@@ -90,6 +94,7 @@ ASGI_APPLICATION = 'config.asgi.application'  # Para WebSockets
 # DATABASE (Base - se sobreescribe en cada entorno)
 # Configuración por defecto (se usará en development)
 # ============================================================================
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
