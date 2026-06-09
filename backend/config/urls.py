@@ -19,12 +19,35 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.http import JsonResponse #para implementar la json response
 
+# Vista simple para home, para cargar urls
+def home(request):
+    return JsonResponse({
+        'message': 'Bienvenido a ServiceHub API',
+        'version': '1.0',
+        'endpoints': [
+            '/admin/',
+            '/accounts/',
+            '/orders/',
+            '/chat/',
+        ]
+    })
+#////////////////////////////////////////////////////////////////////////////////////
 urlpatterns = [
     path('admin/', admin.site.urls),
     # Endpoints para JWT
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
+   # agregado paraa ejecutar runserver y probar que se cargan las urls
+    path('', home, name='home'),  # API root
+    #path('api/accounts/', include('apps.accounts.urls')),
+    #path('api/orders/', include('apps.orders.urls')),
+    
+    path('chat/', include('apps.chat.urls')),#path(url,dirección de la url de la aplicación)
+  #/////////////////////////////////////////////
+
 ]
 
 # Servir archivos estáticos y de media en desarrollo
