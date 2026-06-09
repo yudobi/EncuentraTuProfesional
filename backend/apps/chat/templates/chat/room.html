@@ -1,0 +1,24 @@
+{% extends "chat/base.html" %}
+{% block content %}
+
+
+ 
+<div class= "container col-8">
+    <!-- llama al name creado en models a partir del room de chat_room en views-->
+    <h1>Sala de chat: {{ room.name }}</h1> 
+
+    <div id ="moxMessage"> </div>
+    <div id ="Chat"> 
+        
+        <input class= "form-control" id="message" type="text" placeholder="Escribe tu mensaje aquí...">
+        <button class= "btn btn-succes mt-2" submit id="sendButton">Enviar</button>
+        <!-- regresa a dashboard-->
+        <a class= "btn btn-primary mt-2 float-end" href="{% url 'chat_dashboard'%}">Volver</a> 
+
+    
+    
+    </div>
+    
+</div>
+
+{% endblock %}

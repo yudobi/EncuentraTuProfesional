@@ -1,0 +1,19 @@
+{% extends "chat/base.html" %}
+{% block content %}
+
+    <h1>Elegir Sala de Chat</h1>
+
+    {% if error_message %}
+          <p>{{ error_message }}</p>  
+    {% endif %}
+
+    <ul> <!-- da las rooms disponibles como ul -->
+        {% for room in rooms %} <!-- recorre el rooms en dashboard de views -->
+        <!-- si existe una room, la muestra en pantalla paara poder ser seleccionada-->
+        <!-- forma de llamar una room a partir del url dado en chat/urls-->
+        <li><a class="btn btn-success" href="{% url 'room' room.id %}">{{ room.name }}</a></li>
+        {% empty %}
+            <li>No hay rooms disponibles.</li>
+        {% endfor %}
+
+    {% endblock %}
