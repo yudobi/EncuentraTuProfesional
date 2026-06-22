@@ -1,17 +1,29 @@
 {% extends "chat/base.html" %}
+{% load static %}
+
 {% block content %}
 
+<!-- ✅ CSS cargado directamente dentro del bloque content -->
+<link rel="stylesheet" href="{% static 'chat/css/room.css' %}">
 
- 
-<div class= "container col-8">
+ <div class= "container col-8">
     <!-- llama al name creado en models a partir del room de chat_room en views-->
     <h1>Sala de chat: {{ room.name }}</h1> 
+     <!-- da nombre del usuario-->
+    <h4 class="user_name">{{ user.username }}</h4>
+    
+    <div id ="boxMessage"> </div>
 
-    <div id ="moxMessage"> </div>
+    </div>
+
     <div id ="Chat"> 
         
-        <input class= "form-control" id="message" type="text" placeholder="Escribe tu mensaje aquí...">
+        <input class= "form-control" id="input_message" type="text"  value="Escribe tu mensaje aquí..." >
+
+       
         <button class= "btn btn-succes mt-2" submit id="sendButton">Enviar</button>
+
+
         <!-- regresa a dashboard-->
         <a class= "btn btn-primary mt-2 float-end" href="{% url 'chat_dashboard'%}">Volver</a> 
 
@@ -19,6 +31,14 @@
     
     </div>
     
-</div>
+ </div>
+
+<script>
+    var user='{{user.username}}' //se guarda el nombre del usuario en la variable user
+    </script>
+
+ <!-- ✅ Script cargado DIRECTAMENTE aquí (sin bloque) -->
+<script src="{% static 'chat/js/room.js' %}"></script>
 
 {% endblock %}
+
